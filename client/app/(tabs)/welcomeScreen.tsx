@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
           styles.button,
           { backgroundColor: theme.buttonBackground },
         ]}
-        onPress={() => route.push("/login")}
+        onPress={() => route.push("/(auth)/login")}
       >
         <Icon name="arrow-right" size={16} color={theme.iconColor} />
       </TouchableOpacity>
