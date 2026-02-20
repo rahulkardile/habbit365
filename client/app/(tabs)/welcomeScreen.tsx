@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
           styles.button,
           { backgroundColor: theme.buttonBackground },
         ]}
-        onPress={() => route.push("/home")}
+        onPress={() => route.push("/login")}
       >
         <Icon name="arrow-right" size={16} color={theme.iconColor} />
       </TouchableOpacity>
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   image: {
-    width: width * 0.9,   // responsive 👌
+    width: width * 0.9,
     height: 350,
     marginBottom: 10,
   },
