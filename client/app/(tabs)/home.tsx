@@ -1,3 +1,4 @@
+import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
@@ -5,8 +6,9 @@ export default function Index() {
     <View
       style={style.container}
     >
-      <Text style={style.text}>Habbit365</Text>
-      <Text style={style.text}>Track your progress</Text>
+      <Link href="/createhabitPage">
+        <Text style={style.text}>Go to Dashboard</Text>
+      </Link>
     </View>                           
   );
 }
