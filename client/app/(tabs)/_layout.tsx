@@ -38,6 +38,36 @@ export default function Layout() {
           ),
         }}
       />
+      
+      <Tabs.Screen
+        name="(tabs)/analytics"
+        options={{
+          title: "Analytics",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="analytics" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="(tabs)/leaderboard"
+        options={{
+          title: "Leaderboard",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trophy" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="(tabs)/calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   )
 }
