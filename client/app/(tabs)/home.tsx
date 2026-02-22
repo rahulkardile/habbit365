@@ -5,28 +5,16 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  Animated,
-  Dimensions,
   Platform,
-  StatusBar,
+  StatusBar
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Habit } from "@/src/interfaces";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StreakCard } from "@/src/components/streakCard";
+import { ProgressRing } from "@/src/components/progressRing";
+import { HabitCard } from "@/src/components/habitCard";
 
-const { width } = Dimensions.get("window");
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-interface Habit {
-  id: string;
-  name: string;
-  icon: string;
-  category: string;
-  streak: number;
-  completedToday: boolean;
-  targetDays: number;
-}
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
 const INITIAL_HABITS: Habit[] = [
   { id: "1", name: "Morning Meditation", icon: "🧘", category: "Mindfulness", streak: 14, completedToday: false, targetDays: 30 },
   { id: "2", name: "Run 5km", icon: "🏃", category: "Fitness", streak: 7, completedToday: true, targetDays: 21 },
@@ -39,135 +27,6 @@ const INITIAL_HABITS: Habit[] = [
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const today = new Date().getDay();
 
-// ─── Progress Ring ────────────────────────────────────────────────────────────
-function ProgressRing({ progress, size = 88, stroke = 6 }: { progress: number; size?: number; stroke?: number }) {
-  const animVal = useRef(new Animated.Value(0)).current;
-  const radius = (size - stroke) / 2;
-  const circumference = radius * 2 * Math.PI;
-
-  useEffect(() => {
-    Animated.timing(animVal, { toValue: progress, duration: 1200, useNativeDriver: false }).start();
-  }, [progress]);
-
-  return (
-    <View style={{ width: size, height: size, justifyContent: "center", alignItems: "center" }}>
-      {/* Background ring */}
-      <View
-        style={{
-          position: "absolute",
-          width: size - stroke,
-          height: size - stroke,
-          borderRadius: (size - stroke) / 2,
-          borderWidth: stroke,
-          borderColor: "#F0F0F0",
-        }}
-      />
-      {/* Progress arc using border trick */}
-      <View
-        style={{
-          position: "absolute",
-          width: size - stroke,
-          height: size - stroke,
-          borderRadius: (size - stroke) / 2,
-          borderWidth: stroke,
-          borderColor: "#0A0A0A",
-          borderRightColor: progress < 0.25 ? "#F0F0F0" : "#0A0A0A",
-          borderBottomColor: progress < 0.5 ? "#F0F0F0" : "#0A0A0A",
-          borderLeftColor: progress < 0.75 ? "#F0F0F0" : "#0A0A0A",
-          transform: [{ rotate: "-90deg" }],
-        }}
-      />
-    </View>
-  );
-}
-
-// ─── Habit Card ────────────────────────────────────────────────────────────────
-function HabitCard({ habit, onToggle, index }: { habit: Habit; onToggle: () => void; index: number }) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const fade = useRef(new Animated.Value(0)).current;
-  const checkAnim = useRef(new Animated.Value(habit.completedToday ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.timing(fade, {
-      toValue: 1,
-      duration: 400,
-      delay: 100 + index * 80,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
-  const handleToggle = () => {
-    Animated.sequence([
-      Animated.spring(scale, { toValue: 0.95, useNativeDriver: true, tension: 300 }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 300 }),
-    ]).start();
-    Animated.timing(checkAnim, {
-      toValue: habit.completedToday ? 0 : 1,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-    onToggle();
-  };
-
-  const checkBg = checkAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#F0F0F0", "#0A0A0A"],
-  });
-
-  return (
-    <Animated.View style={[styles.habitCard, { opacity: fade, transform: [{ scale }] }]}>
-      <View style={styles.habitLeft}>
-        <View style={styles.habitIconWrap}>
-          <Text style={styles.habitIcon}>{habit.icon}</Text>
-        </View>
-        <View>
-          <Text style={styles.habitName}>{habit.name}</Text>
-          <View style={styles.habitMeta}>
-            <Text style={styles.habitCategory}>{habit.category}</Text>
-            <View style={styles.metaDot} />
-            <Text style={styles.habitStreak}>🔥 {habit.streak}d</Text>
-          </View>
-        </View>
-      </View>
-      <TouchableOpacity onPress={handleToggle} activeOpacity={0.8}>
-        <Animated.View style={[styles.checkButton, { backgroundColor: checkBg }]}>
-          <Text style={[styles.checkMark, { color: habit.completedToday ? "#FFFFFF" : "#CCCCCC" }]}>✓</Text>
-        </Animated.View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
-// ─── Streak Flame Card ─────────────────────────────────────────────────────────
-function StreakCard({ streak, longestStreak }: { streak: number; longestStreak: number }) {
-  const flameAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(flameAnim, { toValue: 1.1, duration: 700, useNativeDriver: true }),
-        Animated.timing(flameAnim, { toValue: 0.95, duration: 700, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  return (
-    <View style={styles.streakCard}>
-      <Animated.Text style={[styles.streakFlame, { transform: [{ scale: flameAnim }] }]}>🔥</Animated.Text>
-      <View style={styles.streakInfo}>
-        <Text style={styles.streakNum}>{streak}</Text>
-        <Text style={styles.streakLabel}>Current Streak</Text>
-      </View>
-      <View style={styles.streakDivider} />
-      <View style={styles.streakInfo}>
-        <Text style={styles.streakNum}>{longestStreak}</Text>
-        <Text style={styles.streakLabel}>Best Ever</Text>
-      </View>
-    </View>
-  );
-}
-
-// ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const router = useRouter();
   const [habits, setHabits] = useState(INITIAL_HABITS);
@@ -193,12 +52,10 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Background accents */}
       <View style={styles.bgCircle} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* ── Header ── */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{greeting} 👋</Text>
@@ -210,14 +67,13 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.avatarBtn}
-              // onPress={() => router.push("/(tabs)/leaderboard")}
+              onPress={() => router.push("/(tabs)/leaderboard")}
             >
               <Text style={{ fontSize: 16 }}>👤</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── Progress Card ── */}
         <View style={styles.progressCard}>
           <View style={styles.progressLeft}>
             <Text style={styles.progressTitle}>Today's Progress</Text>
@@ -235,10 +91,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Streak Card ── */}
         <StreakCard streak={21} longestStreak={45} />
 
-        {/* ── Day selector ── */}
         <View style={styles.dayRow}>
           {DAYS.map((d, i) => {
             const isToday = i === today;
@@ -256,12 +110,11 @@ export default function HomeScreen() {
           })}
         </View>
 
-        {/* ── Section Header ── */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Habits</Text>
           <TouchableOpacity
             style={styles.addBtn}
-            // onPress={() => router.push("/(tabs)/add-habit")}
+            onPress={() => router.push("/(tabs)/add-habit")}
           >
             <Text style={styles.addBtnText}>+ Add</Text>
           </TouchableOpacity>
@@ -345,6 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0A0A0A",
     justifyContent: "center", alignItems: "center",
   },
+  habitList: { paddingHorizontal: 24, gap: 10, marginBottom: 24 },
 
   // Progress Card
   progressCard: {
@@ -371,30 +225,6 @@ const styles = StyleSheet.create({
   progressBarFill: { height: 5, backgroundColor: "#0A0A0A", borderRadius: 3 },
   progressPercent: { fontSize: 12, color: "#555555", fontWeight: "600" },
   ringLabel: { textAlign: "center", fontSize: 12, color: "#888888", marginTop: 4 },
-
-  // Streak Card
-  streakCard: {
-    marginHorizontal: 24,
-    backgroundColor: "#0A0A0A",
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  streakFlame: { fontSize: 32, marginRight: 16 },
-  streakInfo: { flex: 1, alignItems: "center" },
-  streakNum: {
-    fontSize: 28, fontWeight: "700", color: "#FFFFFF",
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-  },
-  streakLabel: { fontSize: 11, color: "#888888", marginTop: 2, fontWeight: "500" },
-  streakDivider: { width: 1, height: 40, backgroundColor: "#333333", marginHorizontal: 4 },
 
   // Day Row
   dayRow: {
@@ -436,41 +266,6 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   addBtnText: { fontSize: 13, color: "#FFFFFF", fontWeight: "600" },
-
-  // Habit List
-  habitList: { paddingHorizontal: 24, gap: 10, marginBottom: 24 },
-  habitCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  habitLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
-  habitIconWrap: {
-    width: 42, height: 42, borderRadius: 12,
-    backgroundColor: "#F7F7F7",
-    justifyContent: "center", alignItems: "center",
-  },
-  habitIcon: { fontSize: 20 },
-  habitName: { fontSize: 14, fontWeight: "600", color: "#0A0A0A", marginBottom: 3 },
-  habitMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
-  habitCategory: { fontSize: 12, color: "#AAAAAA" },
-  metaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: "#DDDDDD" },
-  habitStreak: { fontSize: 12, color: "#555555", fontWeight: "500" },
-  checkButton: {
-    width: 32, height: 32, borderRadius: 16,
-    justifyContent: "center", alignItems: "center",
-  },
-  checkMark: { fontSize: 14, fontWeight: "700" },
 
   // Bottom nav card
   navCard: {

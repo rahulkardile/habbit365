@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Animated,
   Dimensions,
   Platform,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/hooks/useTheme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -178,7 +178,7 @@ export default function WelcomeScreen() {
         <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => router.push("/(auth)/login")}
+            onPress={() => router.push("/(auth)/register")}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             activeOpacity={1}

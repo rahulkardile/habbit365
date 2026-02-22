@@ -5,19 +5,19 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { getUser } from "@/services/auth";
+import { getUser } from "@/src/services/auth";
 import { useTheme } from "@/hooks/useTheme";
-
-const { width, height } = Dimensions.get("window");
+import { SafeAreaView } from "react-native-safe-area-context";
+import { loginUser } from "@/src/api/auth.service";
+import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function AnimatedInput({
   placeholder,
@@ -102,11 +102,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Entry animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(32)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
-
+  console.log(AsyncStorage.getItem("USER"));
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -144,15 +143,15 @@ export default function Login() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const storedUser = await getUser();
-      if (!storedUser) {
-        Alert.alert("No account found", "Please register to continue.");
-        return;
-      }
-      if (storedUser.email === email && storedUser.password === password) {
+      const storedUser = await loginUser(email, password);
+      if (storedUser.status === "success") {
         router.replace("/(tabs)/home");
       } else {
-        Alert.alert("Invalid credentials", "Please check your email and password.");
+        Toast.show({
+          type: "error",
+          text1: "Login Failed",
+          text2: storedUser.message || "Invalid credentials",
+        });
       }
     } finally {
       setLoading(false);

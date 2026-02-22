@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Animated,
   Dimensions,
   KeyboardAvoidingView,
@@ -14,8 +13,10 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { saveUser } from "@/services/auth";
 import { useTheme } from "@/hooks/useTheme";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { registerUser } from "@/src/api/auth.service";
+import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
 
@@ -198,8 +199,17 @@ export default function Register() {
     setLoading(true);
     try {
       const user = { name, email, password };
-      await saveUser(user);
+      const userRegister = await registerUser(user);
       router.replace("/(tabs)/home");
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2:
+          error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+      });
     } finally {
       setLoading(false);
     }

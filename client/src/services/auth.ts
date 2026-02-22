@@ -1,8 +1,10 @@
+import { registerUser } from "@/src/api/auth.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const USER_KEY = "habit365_user";
 
 export const saveUser = async (user: any) => {
+  registerUser(user);
   await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
 };
 

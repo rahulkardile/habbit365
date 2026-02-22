@@ -5,34 +5,12 @@ import { useTheme } from "@/hooks/useTheme";
 export default function Layout() {
   const theme = useTheme("light");
   return (
-    <Tabs
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: theme.tabBackground,
-          borderTopWidth: 0,
-          display: route.name === "(tabs)/home" ? "none" : "flex",
-        },
-        tabBarActiveTintColor: theme.tabActive,
-        tabBarInactiveTintColor: theme.tabInactive,
-        sceneStyle: { backgroundColor: theme.background },
-      })}
-    >
-      <Tabs.Screen
-        name="(tabs)/welcomeScreen"
-        options={{
-          title: "",
-          tabBarStyle: { display: "none" },
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-
+    <Tabs >
       <Tabs.Screen
         name="(tabs)/home"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -43,6 +21,7 @@ export default function Layout() {
         name="(tabs)/analytics"
         options={{
           title: "Analytics",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="analytics" size={size} color={color} />
           ),
@@ -53,6 +32,7 @@ export default function Layout() {
         name="(tabs)/leaderboard"
         options={{
           title: "Leaderboard",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="trophy" size={size} color={color} />
           ),
@@ -63,8 +43,20 @@ export default function Layout() {
         name="(tabs)/calendar"
         options={{
           title: "Calendar",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="(tabs)/add-habit"
+        options={{
+          title: "Add Habit",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle" size={size} color={color} />
           ),
         }}
       />
