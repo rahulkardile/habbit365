@@ -2,8 +2,10 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { Animated, View } from "react-native";
 import { Habit } from "../interfaces";
+import { toggleHabit } from "../api/habit.service";
+import Toast from "react-native-toast-message";
 
-export function HabitCard({ habit, onToggle, index }: { habit: Habit; onToggle: () => void; index: number }) {
+export function HabitCard({ _id, habit, onToggle, index }: { _id: string; habit: Habit; onToggle: () => void; index: number }) {
     const scale = useRef(new Animated.Value(1)).current;
     const fade = useRef(new Animated.Value(0)).current;
     const checkAnim = useRef(new Animated.Value(habit.completedToday ? 1 : 0)).current;
@@ -18,6 +20,18 @@ export function HabitCard({ habit, onToggle, index }: { habit: Habit; onToggle: 
     }, []);
 
     const handleToggle = () => {
+        toggleHabit(_id).then(() => {
+            Toast.show({
+                type: "success",
+                text1: habit.completedToday ? "Marked as incomplete" : "Marked as complete",
+            });
+        }).catch((err) => {
+            Toast.show({
+                type: "error",
+                text1: "Failed to update habit status",
+            });
+            console.log("Error toggling habit:", err);
+        });
         Animated.sequence([
             Animated.spring(scale, { toValue: 0.95, useNativeDriver: true, tension: 300 }),
             Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 300 }),

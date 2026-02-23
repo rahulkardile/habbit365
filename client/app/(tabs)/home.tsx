@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,15 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StreakCard } from "@/src/components/streakCard";
 import { ProgressRing } from "@/src/components/progressRing";
 import { HabitCard } from "@/src/components/habitCard";
+import { allHabit } from "@/src/api/habit.service";
 
-const INITIAL_HABITS: Habit[] = [
-  { id: "1", name: "Morning Meditation", icon: "🧘", category: "Mindfulness", streak: 14, completedToday: false, targetDays: 30 },
-  { id: "2", name: "Run 5km", icon: "🏃", category: "Fitness", streak: 7, completedToday: true, targetDays: 21 },
-  { id: "3", name: "Read 30 mins", icon: "📖", category: "Learning", streak: 21, completedToday: false, targetDays: 30 },
-  { id: "4", name: "Drink 2L Water", icon: "💧", category: "Health", streak: 5, completedToday: true, targetDays: 14 },
-  { id: "5", name: "Journal Entry", icon: "📝", category: "Mindfulness", streak: 3, completedToday: false, targetDays: 7 },
-  { id: "6", name: "Cold Shower", icon: "🚿", category: "Wellness", streak: 9, completedToday: false, targetDays: 14 },
-];
+const INITIAL_HABITS: Habit[] = [{ _id: "1",  name: "Morning Meditation", icon: "🧘", category: "Mindfulness", streak: 14, completedToday: false, targetDays: 30 }];
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const today = new Date().getDay();
@@ -31,6 +25,18 @@ export default function HomeScreen() {
   const router = useRouter();
   const [habits, setHabits] = useState(INITIAL_HABITS);
   const [selectedDay, setSelectedDay] = useState(today);
+  const [stats, setStats] = useState({ totalStreak: 0, longestStreak: 0 });
+
+  useEffect(() => {
+    allHabit().then((res) => {
+      if(res.status === "success" && Array.isArray(res.data) && res.data.length > 0){
+        setHabits(res.data);
+        setStats(res.stats || { totalStreak: 0, longestStreak: 0 });
+      }
+    }).catch((err) => {
+      console.log("Error fetching habits:", err);
+    });
+  }, []);
 
   const completed = habits.filter((h) => h.completedToday).length;
   const total = habits.length;
@@ -38,13 +44,12 @@ export default function HomeScreen() {
 
   const toggleHabit = (id: string) => {
     setHabits((prev) =>
-      prev.map((h) => (h.id === id ? { ...h, completedToday: !h.completedToday } : h))
+      prev.map((h) => (h._id === id ? { ...h, completedToday: !h.completedToday } : h))
     );
   };
 
   const greetingHour = new Date().getHours();
-  const greeting =
-    greetingHour < 12 ? "Good morning" : greetingHour < 17 ? "Good afternoon" : "Good evening";
+  const greeting = greetingHour < 12 ? "Good morning" : greetingHour < 17 ? "Good afternoon" : "Good evening";
 
   const todayStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
@@ -91,7 +96,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <StreakCard streak={21} longestStreak={45} />
+        <StreakCard streak={stats.totalStreak} longestStreak={stats.longestStreak} />
 
         <View style={styles.dayRow}>
           {DAYS.map((d, i) => {
@@ -123,7 +128,7 @@ export default function HomeScreen() {
         {/* ── Habit List ── */}
         <View style={styles.habitList}>
           {habits.map((h, i) => (
-            <HabitCard key={h.id} habit={h} onToggle={() => toggleHabit(h.id)} index={i} />
+            <HabitCard key={h._id} _id={h._id} habit={h} onToggle={() => toggleHabit(h._id)} index={i} />
           ))}
         </View>
 
@@ -267,7 +272,6 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontSize: 13, color: "#FFFFFF", fontWeight: "600" },
 
-  // Bottom nav card
   navCard: {
     marginHorizontal: 24,
     backgroundColor: "#FFFFFF",

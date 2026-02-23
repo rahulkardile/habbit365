@@ -5,7 +5,7 @@ export interface User {
 }
 
 export interface Habit {
-  id: string;
+  _id: string;
   name: string;
   icon: string;
   category: string;

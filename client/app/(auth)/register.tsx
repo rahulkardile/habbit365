@@ -155,7 +155,6 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Entry animations
   const headerFade = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(24)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;

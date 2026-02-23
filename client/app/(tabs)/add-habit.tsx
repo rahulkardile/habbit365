@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Animated,
   ScrollView,
   Platform,
@@ -13,45 +12,35 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { createHabit } from "@/src/api/habit.service";
+import Toast from "react-native-toast-message";
 
 const CATEGORIES = [
   { label: "Mindfulness", icon: "🧘" },
-  { label: "Fitness",     icon: "🏃" },
-  { label: "Learning",    icon: "📖" },
-  { label: "Health",      icon: "💧" },
-  { label: "Wellness",    icon: "🚿" },
-  { label: "Finance",     icon: "💰" },
-  { label: "Social",      icon: "🤝" },
-  { label: "Creative",    icon: "🎨" },
+  { label: "Fitness", icon: "🏃" },
+  { label: "Learning", icon: "📖" },
+  { label: "Health", icon: "💧" },
+  { label: "Wellness", icon: "🚿" },
+  { label: "Finance", icon: "💰" },
+  { label: "Social", icon: "🤝" },
+  { label: "Creative", icon: "🎨" },
 ];
 
 const ICONS = ["🧘", "🏃", "📖", "💧", "🚿", "💪", "🥗", "😴", "📝", "🎯", "🎨", "🧠", "🌿", "💰", "🤝", "🎵"];
 
 const FREQUENCIES = [
-  { label: "Daily",    sub: "Every day" },
+  { label: "Daily", sub: "Every day" },
   { label: "Weekdays", sub: "Mon – Fri" },
-  { label: "Weekly",   sub: "Once a week" },
-  { label: "Custom",   sub: "You choose" },
+  { label: "Weekly", sub: "Once a week" },
+  { label: "Custom", sub: "You choose" },
 ];
 
 const TARGET_OPTIONS = [7, 14, 21, 30, 60, 90];
 
 const REMINDER_TIMES = ["06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "12:00 PM", "06:00 PM", "08:00 PM", "09:00 PM"];
 
-// ─── Floating Label Input ─────────────────────────────────────────────────────
-function FloatingInput({
-  placeholder,
-  value,
-  onChangeText,
-  multiline = false,
-  maxLength,
-}: {
-  placeholder: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  multiline?: boolean;
-  maxLength?: number;
-}) {
+function FloatingInput({ placeholder, value, onChangeText, multiline = false, maxLength }: { placeholder: string; value: string; onChangeText: (t: string) => void; multiline?: boolean; maxLength?: number; }) {
   const [focused, setFocused] = useState(false);
   const borderColor = useRef(new Animated.Value(0)).current;
   const labelTop = useRef(new Animated.Value(value ? 0 : 1)).current;
@@ -109,7 +98,6 @@ function FloatingInput({
   );
 }
 
-// ─── Section Label ────────────────────────────────────────────────────────────
 function SectionLabel({ label, hint }: { label: string; hint?: string }) {
   return (
     <View style={styles.sectionLabelRow}>
@@ -119,7 +107,6 @@ function SectionLabel({ label, hint }: { label: string; hint?: string }) {
   );
 }
 
-// ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function AddHabitScreen() {
   const router = useRouter();
 
@@ -164,10 +151,20 @@ export default function AddHabitScreen() {
 
   const isValid = name.trim().length > 0 && selectedCategory.length > 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isValid) return;
-    // TODO: persist habit
-    router.back();
+    const data = await createHabit({ name, description, selectedIcon, selectedCategory, selectedFrequency, targetDays, reminderTime, reminderEnabled });
+    if (data.status === "success") {
+      router.back();
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2:
+          data?.message ||
+          "Something went wrong",
+      });
+    }
   };
 
   const handlePressIn = () => {
@@ -243,7 +240,6 @@ export default function AddHabitScreen() {
               </View>
             </View>
 
-            {/* ── Category ── */}
             <View style={styles.section}>
               <SectionLabel label="Category" />
               <View style={styles.chipGrid}>
@@ -417,7 +413,6 @@ export default function AddHabitScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA" },
 
