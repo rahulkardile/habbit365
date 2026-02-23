@@ -15,7 +15,7 @@ connectDB(dbUrl);
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRouter);
-app.use("/api/app", appRouter);
+app.use("/api/habit", appRouter);
 
 app.listen(port, ()=>{
     console.log(`server is up and running at ${port}`);
