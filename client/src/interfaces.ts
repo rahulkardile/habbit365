@@ -6,7 +6,7 @@ export interface User {
 
 export interface Habit {
   _id: string;
-  name: string;
+  title: string;
   icon: string;
   category: string;
   streak: number;

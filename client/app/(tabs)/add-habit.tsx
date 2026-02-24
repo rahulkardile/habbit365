@@ -28,7 +28,6 @@ const CATEGORIES = [
 ];
 
 const ICONS = ["🧘", "🏃", "📖", "💧", "🚿", "💪", "🥗", "😴", "📝", "🎯", "🎨", "🧠", "🌿", "💰", "🤝", "🎵"];
-
 const FREQUENCIES = [
   { label: "Daily", sub: "Every day" },
   { label: "Weekdays", sub: "Mon – Fri" },
@@ -110,7 +109,7 @@ function SectionLabel({ label, hint }: { label: string; hint?: string }) {
 export default function AddHabitScreen() {
   const router = useRouter();
 
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedIcon, setSelectedIcon] = useState("🎯");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -148,12 +147,11 @@ export default function AddHabitScreen() {
     outputRange: ["#E5E5E5", "#0A0A0A"],
   });
   const toggleKnob = toggleAnim.interpolate({ inputRange: [0, 1], outputRange: [2, 22] });
-
-  const isValid = name.trim().length > 0 && selectedCategory.length > 0;
+  const isValid = title.trim().length > 0 && selectedCategory.length > 0;
 
   const handleSave = async () => {
     if (!isValid) return;
-    const data = await createHabit({ name, description, selectedIcon, selectedCategory, selectedFrequency, targetDays, reminderTime, reminderEnabled });
+    const data = await createHabit({ title, description, selectedIcon, selectedCategory, selectedFrequency, targetDays, reminderTime, reminderEnabled });
     if (data.status === "success") {
       router.back();
     } else {
@@ -207,8 +205,8 @@ export default function AddHabitScreen() {
             <View style={styles.section}>
               <FloatingInput
                 placeholder="Habit name"
-                value={name}
-                onChangeText={setName}
+                value={title}
+                onChangeText={setTitle}
                 maxLength={40}
               />
               <FloatingInput
@@ -362,7 +360,7 @@ export default function AddHabitScreen() {
             </View>
 
             {/* ── Preview Card ── */}
-            {name.length > 0 && (
+            {title.length > 0 && (
               <View style={styles.section}>
                 <SectionLabel label="Preview" hint="How it'll look" />
                 <View style={styles.previewCard}>
@@ -371,7 +369,7 @@ export default function AddHabitScreen() {
                       <Text style={{ fontSize: 20 }}>{selectedIcon}</Text>
                     </View>
                     <View>
-                      <Text style={styles.previewName}>{name}</Text>
+                      <Text style={styles.previewName}>{title}</Text>
                       <View style={styles.previewMeta}>
                         <Text style={styles.previewCategory}>{selectedCategory || "No category"}</Text>
                         <View style={styles.metaDot} />

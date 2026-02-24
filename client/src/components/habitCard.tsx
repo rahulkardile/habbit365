@@ -20,12 +20,7 @@ export function HabitCard({ _id, habit, onToggle, index }: { _id: string; habit:
     }, []);
 
     const handleToggle = () => {
-        toggleHabit(_id).then(() => {
-            Toast.show({
-                type: "success",
-                text1: habit.completedToday ? "Marked as incomplete" : "Marked as complete",
-            });
-        }).catch((err) => {
+        toggleHabit(_id).then(() => {}).catch((err) => {
             Toast.show({
                 type: "error",
                 text1: "Failed to update habit status",
@@ -56,7 +51,7 @@ export function HabitCard({ _id, habit, onToggle, index }: { _id: string; habit:
                     <Text style={styles.habitIcon}>{habit.icon}</Text>
                 </View>
                 <View>
-                    <Text style={styles.habitName}>{habit.name}</Text>
+                    <Text style={styles.habitName}>{habit.title}</Text>
                     <View style={styles.habitMeta}>
                         <Text style={styles.habitCategory}>{habit.category}</Text>
                         <View style={styles.metaDot} />

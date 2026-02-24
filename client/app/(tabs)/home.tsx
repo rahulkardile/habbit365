@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  StatusBar
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar} from "react-native";
 import { useRouter } from "expo-router";
 import { Habit } from "@/src/interfaces";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,8 +7,7 @@ import { StreakCard } from "@/src/components/streakCard";
 import { ProgressRing } from "@/src/components/progressRing";
 import { HabitCard } from "@/src/components/habitCard";
 import { allHabit } from "@/src/api/habit.service";
-
-const INITIAL_HABITS: Habit[] = [{ _id: "1",  name: "Morning Meditation", icon: "🧘", category: "Mindfulness", streak: 14, completedToday: false, targetDays: 30 }];
+import { INITIAL_HABITS } from "@/src/data/initial_habit";
 
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const today = new Date().getDay();
@@ -31,7 +22,7 @@ export default function HomeScreen() {
     allHabit().then((res) => {
       if(res.status === "success" && Array.isArray(res.data) && res.data.length > 0){
         setHabits(res.data);
-        setStats(res.stats || { totalStreak: 0, longestStreak: 0 });
+        setStats(res.streak || { totalStreak: 0, longestStreak: 0 });
       }
     }).catch((err) => {
       console.log("Error fetching habits:", err);
@@ -50,7 +41,6 @@ export default function HomeScreen() {
 
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? "Good morning" : greetingHour < 17 ? "Good afternoon" : "Good evening";
-
   const todayStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
