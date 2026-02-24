@@ -1,82 +1,58 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+import { IHabit } from "../interfaces/habits";
 
-export interface IHabit extends Document {
-  user: Types.ObjectId;
-  name: string;
-  description?: string;
-  icon: string;
-  category: string;
-  frequency: "Daily" | "Weekly" | "Monthly";
-  targetDays: number;
-  streak: number;
-  completedToday: boolean;
-  reminderTime?: string;
-  reminderEnabled: boolean;
-}
-
-const habitSchema = new Schema<IHabit>(
+const HabitSchema: Schema = new Schema(
   {
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
-
-    name: {
+    title: {
       type: String,
       required: true,
       trim: true,
     },
-
-    description: {
-      type: String,
-      default: "",
-    },
-
     icon: {
       type: String,
-      required: true,
-    },
-
-    category: {
-      type: String,
-      required: true,
-    },
-
-    frequency: {
-      type: String,
-      enum: ["Daily", "Weekly", "Monthly"],
-      default: "Daily",
-    },
-
-    targetDays: {
-      type: Number,
-      required: true,
-      default: 21,
-    },
-
-    streak: {
-      type: Number,
-      default: 0,
-    },
-
-    completedToday: {
-      type: Boolean,
-      default: false,
-    },
-
+    },    
     reminderTime: {
       type: String,
-      default: "",
     },
-
+    description: {
+      type: String,
+    },
+    category: {
+      type: String,
+    },
+    frequency: {
+      type: String,
+      enum: ["Daily", "weekly", "Weekdays", "monthly", "custom"],
+      default: "Daily",
+      index: true,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+      index: true,
+    },
+    endDate: {
+      type: Date,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },    
     reminderEnabled: {
       type: Boolean,
-      default: false,
-    },
+      default: false
+    }
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IHabit>("Habit", habitSchema);
+HabitSchema.index({ userId: 1, isActive: 1 });
+
+export default mongoose.model<IHabit>("Habit", HabitSchema);
