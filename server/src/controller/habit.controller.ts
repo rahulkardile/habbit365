@@ -2,32 +2,32 @@ import { Response } from "express";
 import { AuthRequest } from "../middlewares/token";
 import habitsModel from "../model/habits.model";
 import habitLogsModel from "../model/habitLogs.model";
-import { getFutureDate } from "../utils/getFutureDate";
+import { formatDateLocal, getFutureDate } from "../utils/utils";
 
 export const createHabit = async (req: AuthRequest, res: Response) => {
-    try {
-        const { title, description, reminderEnabled, endDate, category, reminderTime, frequency, icon } = req.body;
-        
-        const habit = await habitsModel.create({
-            userId: req.user.id,
-            title,
-            description,
-            category,
-            reminderTime,
-            frequency,
-            startDate: new Date(),
-            reminderEnabled,
-            endDate: getFutureDate(endDate),
-            icon,
-        });
+  try {
+    const { title, description, reminderEnabled, endDate, category, reminderTime, frequency, icon } = req.body;
 
-        res.status(201).json({
-            status: "success",
-            data: habit,
-        });
-    } catch (error: Error | any) {
-        res.status(500).json({ message: error.message });
-    }
+    const habit = await habitsModel.create({
+      userId: req.user.id,
+      title,
+      description,
+      category,
+      reminderTime,
+      frequency,
+      startDate: new Date(),
+      reminderEnabled,
+      endDate: getFutureDate(endDate),
+      icon,
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: habit,
+    });
+  } catch (error: Error | any) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // GET /api/habits/by-date?date=YYYY-MM-DD
@@ -162,9 +162,10 @@ export const toggleHabit = async (req: AuthRequest, res: Response) => {
   try {
     const { habitId } = req.params;
     const userId = req.user.id;
-    const today = new Date().toISOString().split("T")[0];
+    const today = formatDateLocal(new Date());
+
     console.log(`userId: ${userId}, habitId: ${habitId}, date: ${today}`);
-    
+
     // Check if already completed
     const existingLog = await habitLogsModel.findOne({
       habitId,
@@ -203,64 +204,220 @@ export const toggleHabit = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// GET /api/habits/analytics
+export const getAnalytics = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
+
+    const today = new Date();
+    const todayStr = formatDateLocal(today);
+
+    const weeklyData = [];
+
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const allLogs = await habitLogsModel.find({
+      userId,
+      date: {
+        $gte: formatDateLocal(sevenDaysAgo),
+        $lte: formatDateLocal(today),
+      },
+    });
+
+    const activeHabits = await habitsModel.find({
+      userId,
+      isActive: true,
+    });
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+
+      const dateStr = formatDateLocal(date);
+
+      const completedCount = allLogs.filter(
+        (log) => log.date === dateStr && log.completedToday
+      ).length;
+
+      const totalHabits = activeHabits.filter(
+        (habit) =>
+          habit.startDate <= date && habit.endDate >= date
+      ).length;
+
+      weeklyData.push({
+        date: dateStr,
+        day: date.toLocaleDateString("en-US", { weekday: "short" }),
+        completed: completedCount,
+        total: totalHabits,
+        percentage:
+          totalHabits > 0
+            ? Math.round((completedCount / totalHabits) * 100)
+            : 0,
+      });
+    }
+
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const monthlyHeatmap = [];
+
+    for (
+      let d = new Date(startOfMonth);
+      d <= endOfMonth;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const dateStr = formatDateLocal(d);
+
+      const completedCount = await habitLogsModel.countDocuments({
+        userId,
+        date: dateStr,
+        completedToday: true,
+      });
+
+      const totalHabits = await habitsModel.countDocuments({
+        userId,
+        isActive: true,
+        startDate: { $lte: d },
+        endDate: { $gte: d },
+      });
+
+      const intensity =
+        totalHabits > 0 ? completedCount / totalHabits : 0;
+
+      monthlyHeatmap.push({
+        day: d.getDate(),
+        intensity,
+        completed: completedCount > 0,
+      });
+    }
+
+    const habits = await habitsModel.find({ userId, isActive: true });
+
+    const habitStats = [];
+
+    for (const habit of habits) {
+      const totalLogs = await habitLogsModel.countDocuments({
+        userId,
+        habitId: habit._id,
+      });
+
+      const completedLogs = await habitLogsModel.countDocuments({
+        userId,
+        habitId: habit._id,
+        completedToday: true,
+      });
+
+      const completion =
+        totalLogs > 0 ? completedLogs / totalLogs : 0;
+
+      // simple streak calc
+      const logs = await habitLogsModel
+        .find({
+          userId,
+          habitId: habit._id,
+          completedToday: true,
+        })
+        .sort({ date: -1 });
+
+      let streak = 0;
+      let previousDate: Date | null = null;
+
+      for (const log of logs) {
+        const currentDate = new Date(log.date);
+
+        if (!previousDate) {
+          streak = 1;
+        } else {
+          const diff =
+            (previousDate.getTime() - currentDate.getTime()) /
+            (1000 * 60 * 60 * 24);
+
+          if (diff === 1) streak++;
+          else break;
+        }
+
+        previousDate = currentDate;
+      }
+
+      habitStats.push({
+        name: habit.title,
+        icon: habit.icon,
+        completion,
+        streak,
+        trend: "+0%", // optional future logic
+      });
+    }
+
+    res.json({
+      status: "success",
+      weeklyData,
+      monthlyHeatmap,
+      habitStats,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET /api/habits/calendar?month=02&year=2026
 export const getCalendarData = async (req: AuthRequest, res: Response) => {
-    try {
-        const { month, year } = req.query;
+  try {
+    const { month, year } = req.query;
 
-        const start = `${year}-${month}-01`;
-        const end = `${year}-${month}-31`;
+    const start = `${year}-${month}-01`;
+    const end = `${year}-${month}-31`;
 
-        const logs = await habitLogsModel.find({
-            userId: req.user.id,
-            date: { $gte: start, $lte: end },
-        }).select("date status");
+    const logs = await habitLogsModel.find({
+      userId: req.user.id,
+      date: { $gte: start, $lte: end },
+    }).select("date status");
 
-        res.json({
-            status: "success",
-            data: logs,
-        });
-    } catch (error : Error | any) {
-        res.status(500).json({ message: error.message });
-    }
+    res.json({
+      status: "success",
+      data: logs,
+    });
+  } catch (error: Error | any) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // GET /api/habits/:habitId/streak
 export const getHabitStreak = async (req: AuthRequest, res: Response) => {
-    try {
-        const { habitId } = req.params;
+  try {
+    const { habitId } = req.params;
 
-        const logs = await habitLogsModel.find({
-            habitId,
-            status: "completed",
-        }).sort({ date: -1 });
+    const logs = await habitLogsModel.find({
+      habitId,
+      status: "completed",
+    }).sort({ date: -1 });
 
-        let streak = 0;
-        let prevDate = null;
+    let streak = 0;
+    let prevDate = null;
 
-        for (const log of logs) {
-            const current = new Date(log.date);
+    for (const log of logs) {
+      const current = new Date(log.date);
 
-            if (!prevDate) {
-                streak++;
-                prevDate = current;
-                continue;
-            }
+      if (!prevDate) {
+        streak++;
+        prevDate = current;
+        continue;
+      }
 
-            const diff =
-                (prevDate.getTime() - current.getTime()) /
-                (1000 * 60 * 60 * 24);
+      const diff =
+        (prevDate.getTime() - current.getTime()) /
+        (1000 * 60 * 60 * 24);
 
-            if (diff === 1) {
-                streak++;
-                prevDate = current;
-            } else {
-                break;
-            }
-        }
-
-        res.json({ status: "success", streak });
-    } catch (error : Error | any) {
-        res.status(500).json({ message: error.message });
+      if (diff === 1) {
+        streak++;
+        prevDate = current;
+      } else {
+        break;
+      }
     }
+
+    res.json({ status: "success", streak });
+  } catch (error: Error | any) {
+    res.status(500).json({ message: error.message });
+  }
 };
