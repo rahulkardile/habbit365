@@ -50,14 +50,13 @@ export default function AnalyticsScreen() {
   const [tab, setTab] = useState<"week" | "month">("week");
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+
   const [analytics, setAnalytics] = useState<AnalyticsResponse>([] as unknown as AnalyticsResponse);
 
   useEffect(() => {
 
     getAnalytics().then((res: AnalyticsResponse) => {
       setAnalytics(res);
-      console.log({res});
-      
     });
 
     Animated.parallel([
@@ -121,7 +120,7 @@ export default function AnalyticsScreen() {
             <Text style={styles.cardSub}>
               {tab === "week" ? "Habits completed each day" : "Each square = one day of activity"}
             </Text>
-            {tab === "week" ? <BarChart weekly_data={analytics.weeklyData} /> : <HeatmapGrid monthly_data={analytics.monthlyHeatmap} />}
+            {tab === "week" ? <BarChart weekly_data={analytics.weeklyData} /> : <HeatmapGrid {...analytics.monthlyHeatmap} />}
 
             {tab === "month" && (
               <View style={hmStyles.legend}>
@@ -139,7 +138,7 @@ export default function AnalyticsScreen() {
             <Text style={styles.cardTitle}>Habit Performance</Text>
             <Text style={styles.cardSub}>Individual completion rates this month</Text>
             <View style={{ gap: 16, marginTop: 16 }}>
-              {analytics.habitStats && analytics.habitStats.map((h, i) => (
+              {HABIT_STATS.map((h, i) => (
                 <View key={i}>
                   <View style={styles.habitStatRow}>
                     <Text style={{ fontSize: 18 }}>{h.icon}</Text>

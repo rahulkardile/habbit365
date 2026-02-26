@@ -16,10 +16,14 @@ export const createHabit = async (data: any) => {
     return res.data;
 };
 
-export const allHabit = async () => {
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    const res = await axios.get(`http://localhost:5000/api/habit/by-date?date=${formattedDate}`, { headers: { Authorization:`${await getToken()}`} });
+export const allHabit = async (date: string) => {
+    const res = await axios.get(`http://localhost:5000/api/habit/by-date?date=${date}`, { headers: { Authorization:`${await getToken()}`} });
+    return res.data;
+};
+
+export const getAnalytics = async () => {
+    const res = await axios.get(`http://localhost:5000/api/habit/analytics`, { headers: { Authorization:`${await getToken()}`} });
+    console.log("Analytics response: ", res.data);
     return res.data;
 };
 

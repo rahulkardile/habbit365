@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { Habit } from "@/src/interfaces";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,27 +7,32 @@ import { StreakCard } from "@/src/components/streakCard";
 import { ProgressRing } from "@/src/components/progressRing";
 import { HabitCard } from "@/src/components/habitCard";
 import { allHabit } from "@/src/api/habit.service";
-import { INITIAL_HABITS } from "@/src/data/initial_habit";
-
-const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
-const today = new Date().getDay();
+import { INITIAL_HABITS } from "@/src/utils/initial_habit";
+import { DAYS, formatLocalDate, getDateFromDayIndex, today } from "@/src/utils/utils";
 
 export default function HomeScreen() {
   const router = useRouter();
   const [habits, setHabits] = useState(INITIAL_HABITS);
   const [selectedDay, setSelectedDay] = useState(today);
   const [stats, setStats] = useState({ totalStreak: 0, longestStreak: 0 });
+  console.log({ selectedDay });
 
   useEffect(() => {
-    allHabit().then((res) => {
-      if(res.status === "success" && Array.isArray(res.data) && res.data.length > 0){
-        setHabits(res.data);
-        setStats(res.streak || { totalStreak: 0, longestStreak: 0 });
-      }
-    }).catch((err) => {
-      console.log("Error fetching habits:", err);
-    });
-  }, []);
+    const selectedDate = getDateFromDayIndex(selectedDay);
+    const formatted = formatLocalDate(selectedDate);
+    setHabits([]); // Clear habits while loading new data
+    allHabit(formatted)
+      .then((res) => {
+        if (res.status === "success") {
+          setHabits(Array.isArray(res.data) ? res.data : []);
+          setStats(res.streak || { totalStreak: 0, longestStreak: 0 });
+        }
+      })
+      .catch((err) => {
+        console.log("Error fetching habits:", err);
+      });
+
+  }, [selectedDay]);
 
   const completed = habits.filter((h) => h.completedToday).length;
   const total = habits.length;
@@ -41,8 +46,12 @@ export default function HomeScreen() {
 
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? "Good morning" : greetingHour < 17 ? "Good afternoon" : "Good evening";
-  const todayStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const selectedDateObj = getDateFromDayIndex(selectedDay);
 
+  const todayStr = selectedDateObj.toLocaleDateString(
+    "en-US",
+    { weekday: "long", month: "long", day: "numeric" }
+  );
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
