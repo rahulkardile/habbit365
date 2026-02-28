@@ -18,69 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { loginUser } from "@/src/api/auth.service";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-function AnimatedInput({ placeholder, value, onChangeText, secureTextEntry = false, keyboardType = "default",}: { placeholder: string; value: string; onChangeText: (t: string) => void; secureTextEntry?: boolean; keyboardType?: any;}) {
-  const [focused, setFocused] = useState(false);
-  const focusAnim = useRef(new Animated.Value(0)).current;
-  const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.timing(focusAnim, {
-      toValue: focused ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-
-    Animated.timing(labelAnim, {
-      toValue: focused || value ? 1 : 0,
-      duration: 180,
-      useNativeDriver: false,
-    }).start();
-  }, [focused, value]);
-
-  const borderColor = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#E5E5E5", "#0A0A0A"],
-  });
-
-  const labelTop = labelAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [18, 6],
-  });
-
-  const labelSize = labelAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [15, 11],
-  });
-
-  const labelColor = labelAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#AAAAAA", "#555555"],
-  });
-
-  return (
-    <Animated.View style={[styles.inputWrapper, { borderColor }]}>
-      <Animated.Text
-        style={[
-          styles.floatingLabel,
-          { top: labelTop, fontSize: labelSize, color: labelColor },
-        ]}
-      >
-        {placeholder}
-      </Animated.Text>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        autoCapitalize="none"
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-      />
-    </Animated.View>
-  );
-}
+import { AnimatedInput } from "@/src/components/animatedInput";
 
 export default function Login() {
   const theme = useTheme("light");
