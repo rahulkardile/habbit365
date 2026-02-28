@@ -1,0 +1,38 @@
+service: habbit365
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-south-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 29
+  architecture: arm64
+  httpApi:
+    payload: '2.0'
+
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    MONGO_URL: ${env:MONGO_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+
+  logRetentionInDays: 14
+
+functions:
+  api:
+    handler: dist/server.handler
+    events:
+      - httpApi:
+          path: /
+          method: ANY
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+
+package:
+  patterns:
+    - '!src/**'
+    - '!*.ts'
+    - '!tsconfig.json'
+    - '!package-lock.json'
+    - '!node_modules/aws-sdk/**'
