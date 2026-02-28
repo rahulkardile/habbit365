@@ -45,3 +45,39 @@ export interface AnalyticsResponse {
   monthlyHeatmap: MonthlyHeatmapItem[];
   habitStats: HabitStatItem[];
 }
+
+export type CalendarStatus =
+  | "completed"
+  | "partial"
+  | "missed"
+  | "future"
+  | "none";
+
+  export interface CalendarCell {
+  day: number | null;
+  status: CalendarStatus;
+}
+
+export interface CalendarSummary {
+  completedDays: number;
+  totalTrackedDays: number;
+  successRate: number;
+}
+
+export interface CalendarResponse {
+  status: "success";
+  year: number;
+  month: number; // 0-based
+  firstDay: number;
+  daysInMonth: number;
+  summary: CalendarSummary;
+  cells: CalendarCell[];
+}
+
+export interface DayHabit {
+  _id?: string;
+  icon: string;
+  title: string;
+  completedToday: boolean;
+}
+

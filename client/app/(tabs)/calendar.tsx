@@ -5,19 +5,22 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Animated,
   Dimensions,
   Platform,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { allHabit, getCalendarData } from "@/src/api/habit.service";
+import { getFormattedDate } from "@/src/utils/utils";
+import { CalendarCell, CalendarStatus } from "@/src/interfaces";
 
 const { width } = Dimensions.get("window");
 const DAYS_HEADER = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 // ─── Generate mock month data ────────────────────────────────────────────────
-function generateMonthData(year: number, month: number) {
+function generateMonthData(year: number, month: number): { cells: CalendarCell[]; firstDay: number; daysInMonth: number; } {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
@@ -47,7 +50,10 @@ function generateMonthData(year: number, month: number) {
   return { cells, firstDay, daysInMonth };
 }
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  CalendarStatus,
+  { bg: string; text: string; label: string }
+> = {
   completed: { bg: "#0A0A0A", text: "#FFFFFF", label: "All done" },
   partial: { bg: "#E8E8E8", text: "#0A0A0A", label: "Partial" },
   missed: { bg: "#FFE8E8", text: "#CC2222", label: "Missed" },
@@ -56,11 +62,11 @@ const STATUS_CONFIG = {
 };
 
 const HABIT_LOG = [
-  { icon: "🧘", name: "Meditation", done: true },
-  { icon: "🏃", name: "Running", done: true },
-  { icon: "📖", name: "Reading", done: false },
-  { icon: "💧", name: "Hydration", done: true },
-  { icon: "📝", name: "Journaling", done: false },
+  { icon: "🧘", title: "Meditation", completedToday: true },
+  { icon: "🏃", title: "Running", completedToday: true },
+  { icon: "📖", title: "Reading", completedToday: false },
+  { icon: "💧", title: "Hydration", completedToday: true },
+  { icon: "📝", title: "Journaling", completedToday: false },
 ];
 
 export default function CalendarScreen() {
@@ -69,18 +75,66 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(now.getMonth());
   const [currentYear, setCurrentYear] = useState(now.getFullYear());
   const [selectedDay, setSelectedDay] = useState(now.getDate());
-
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [calendarData, setCalendarData] = useState<any>(null);
+  const [habits, setHabits] = useState(HABIT_LOG);
 
   useEffect(() => {
+
+    getCalendarData(currentYear, currentMonth).then((data) => {
+      console.log("Calendar data: ", data);
+      setCalendarData(data);
+    }).catch((err) => {
+      console.error("Failed to fetch calendar data: ", err);
+    });
+
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 60, friction: 10, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [currentYear, currentMonth]);
 
-  const { cells } = generateMonthData(currentYear, currentMonth);
+  useEffect(() => {
+    let formatted = getFormattedDate(currentYear, currentMonth, selectedDay);
+    allHabit(formatted)
+      .then((res) => {
+        if (res.status === "success") {
+          setHabits(Array.isArray(res.data) ? res.data : []);
+        }
+      })
+      .catch((err) => {
+        console.log("Error fetching habits:", err);
+      });
+    console.log({ habits });
+  }, [selectedDay]);
+
+
+  if (!calendarData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.bgCircle} />
+
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Text style={{ fontSize: 18, color: "#0A0A0A" }}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Calendar</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text style={{ color: "#888888" }}>Loading calendar data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const { cells } = calendarData;
+
+  console.log({ workingData: generateMonthData(currentYear, currentMonth), notWorkingData: calendarData });
 
   const monthName = new Date(currentYear, currentMonth, 1).toLocaleString("default", {
     month: "long",
@@ -96,8 +150,8 @@ export default function CalendarScreen() {
     setCurrentYear(y);
   };
 
-  const completedCount = cells.filter((c) => c.day !== null && c.status === "completed").length;
-  const totalPast = cells.filter((c) => c.day !== null && c.status !== "future" && c.status !== "none").length;
+  const completedCount = cells.filter((c: any) => c.day !== null && c.status === "completed").length;
+  const totalPast = cells.filter((c: any) => c.day !== null && c.status !== "future" && c.status !== "none").length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -151,9 +205,9 @@ export default function CalendarScreen() {
 
             {/* Cells */}
             <View style={styles.grid}>
-              {cells.map((cell, i) => {
+              {cells.map((cell: any, i: number) => {
                 if (!cell.day) return <View key={i} style={styles.emptyCell} />;
-                const cfg = STATUS_CONFIG[cell.status];
+                const cfg = STATUS_CONFIG[cell.status as keyof typeof STATUS_CONFIG];
                 const isSelected = cell.day === selectedDay;
                 const isToday = cell.day === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear();
 
@@ -204,14 +258,14 @@ export default function CalendarScreen() {
             <Text style={styles.detailSub}>3 of 5 habits completed</Text>
 
             <View style={styles.detailList}>
-              {HABIT_LOG.map((h, i) => (
+              {habits.map((h, i) => (
                 <View key={i} style={styles.detailItem}>
                   <View style={[styles.detailIcon]}>
                     <Text style={{ fontSize: 16 }}>{h.icon}</Text>
                   </View>
-                  <Text style={styles.detailName}>{h.name}</Text>
-                  <View style={[styles.detailCheck, h.done && styles.detailCheckDone]}>
-                    <Text style={{ fontSize: 10, color: h.done ? "#FFF" : "#CCCCCC" }}>✓</Text>
+                  <Text style={styles.detailName}>{h.title}</Text>
+                  <View style={[styles.detailCheck, h.completedToday && styles.detailCheckDone]}>
+                    <Text style={{ fontSize: 10, color: h.completedToday ? "#FFF" : "#CCCCCC" }}>✓</Text>
                   </View>
                 </View>
               ))}

@@ -15,5 +15,13 @@ export const formatLocalDate = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
+export const getFormattedDate = (year: number, month: number, day: number) => {
+  const y = year;
+  const m = String(month + 1).padStart(2, "0"); // month is 0-based
+  const d = String(day).padStart(2, "0");
+
+  return `${y}-${m}-${d}`;
+};
+
 export const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
 export const today = new Date().getDay();

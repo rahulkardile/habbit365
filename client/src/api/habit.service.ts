@@ -31,3 +31,11 @@ export const toggleHabit = async (id: string) => {
  const res = await axios.put(`http://localhost:5000/api/habit/toggle/${id}`, {}, { headers: { Authorization: await getToken() }});
     return res.data;
 };
+
+export const getCalendarData = async (currentYear: number, currentMonth: number) => {  
+    const res = await axios.get(
+        `http://localhost:5000/api/habit/calendar?year=${currentYear}&month=${currentMonth}`
+        , { headers: { Authorization: await getToken() }}
+    );
+    return res.data;
+}
