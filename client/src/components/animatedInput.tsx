@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   input: {
-    height: 70,
+    height: 47,
     fontSize: 15,
     color: "#0A0A0A",
     fontWeight: "400",
