@@ -96,7 +96,9 @@ export default function HomeScreen() {
               <TouchableOpacity style={styles.notifBtn}>
                 <Text style={{ fontSize: 18 }}>🔔</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push("/(tabs)/leaderboard")} >
+              <TouchableOpacity style={styles.avatarBtn} 
+                // onPress={() => router.push("/(tabs)/leaderboard")} 
+                >
                 <Text style={{ fontSize: 16 }}>👤</Text>
               </TouchableOpacity>
             </View>
@@ -173,7 +175,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.navItem}
-              onPress={() => router.push("/(tabs)/leaderboard")}
+              // onPress={() => router.push("/(tabs)/leaderboard")}
             >
               <Text style={styles.navIcon}>🏆</Text>
               <Text style={styles.navLabel}>Community</Text>
