@@ -19,19 +19,7 @@ import { loginUser } from "@/src/api/auth.service";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-function AnimatedInput({
-  placeholder,
-  value,
-  onChangeText,
-  secureTextEntry = false,
-  keyboardType = "default",
-}: {
-  placeholder: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  secureTextEntry?: boolean;
-  keyboardType?: any;
-}) {
+function AnimatedInput({ placeholder, value, onChangeText, secureTextEntry = false, keyboardType = "default",}: { placeholder: string; value: string; onChangeText: (t: string) => void; secureTextEntry?: boolean; keyboardType?: any;}) {
   const [focused, setFocused] = useState(false);
   const focusAnim = useRef(new Animated.Value(0)).current;
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -351,7 +339,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   input: {
-    height: 28,
+    height: 48,
     fontSize: 15,
     color: "#0A0A0A",
     fontWeight: "400",

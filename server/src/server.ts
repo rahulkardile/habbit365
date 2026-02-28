@@ -44,7 +44,6 @@ const limiter = rateLimit({
 
 app.use("/api/", limiter);
 
-
 // Morgan HTTP logger
 if (process.env.NODE_ENV === "production") {
   app.use(morgan("combined"));
@@ -54,7 +53,6 @@ if (process.env.NODE_ENV === "production") {
 
 app.use("/api/auth", authRouter);
 app.use("/api/habit", appRouter);
-
 app.use(compression());
 
 app.get("/health", (_req: Request, res: Response) => {
@@ -87,7 +85,6 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
 );
 
 connectDB(process.env.MONGO_URL);
-
 if (process.env.IS_OFFLINE || process.env.NODE_ENV !== "production") {
     app.listen(port, () => {
         console.log(`Server running at: http://localhost:${port}`);

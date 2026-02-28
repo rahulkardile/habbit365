@@ -61,7 +61,7 @@ function AnimatedInput({ placeholder, value, onChangeText, secureTextEntry = fal
 
   const labelSize = labelAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [15, 11],
+    outputRange: [16, 12],
   });
 
   const labelColor = labelAnim.interpolate({
@@ -73,6 +73,7 @@ function AnimatedInput({ placeholder, value, onChangeText, secureTextEntry = fal
     <Animated.View style={{ opacity: mountAnim }}>
       <Animated.View style={[styles.inputWrapper, { borderColor }]}>
         <Animated.Text
+          pointerEvents="none"
           style={[
             styles.floatingLabel,
             { top: labelTop, fontSize: labelSize, color: labelColor },
@@ -447,7 +448,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   input: {
-    height: 28,
+    height: 48,
     fontSize: 15,
     color: "#0A0A0A",
     fontWeight: "400",
