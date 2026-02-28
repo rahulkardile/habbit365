@@ -153,6 +153,12 @@ export default function Login() {
           text2: storedUser.message || "Invalid credentials",
         });
       }
+    }catch(error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Login Failed",
+        text2: error.message || "Something went wrong",
+      });
     } finally {
       setLoading(false);
     }

@@ -20,21 +20,7 @@ import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
 
-function AnimatedInput({
-  placeholder,
-  value,
-  onChangeText,
-  secureTextEntry = false,
-  keyboardType = "default",
-  delay = 0,
-}: {
-  placeholder: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  secureTextEntry?: boolean;
-  keyboardType?: any;
-  delay?: number;
-}) {
+function AnimatedInput({ placeholder, value, onChangeText, secureTextEntry = false, keyboardType = "default", delay = 0, }: { placeholder: string; value: string; onChangeText: (t: string) => void; secureTextEntry?: boolean; keyboardType?: any; delay?: number; }) {
   const [focused, setFocused] = useState(false);
   const focusAnim = useRef(new Animated.Value(0)).current;
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
