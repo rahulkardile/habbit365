@@ -1,31 +1,12 @@
 import { Stack, Tabs } from "expo-router";
-import { useTheme } from "@/hooks/useTheme";
 
-export default function Layout() {
-  const theme = useTheme("light");
+export default function TabsLayout() {
   return (
-    <Stack>
-      <Tabs>
-        <Tabs.Screen
-          name="(tabs)/home"
-          options={{ headerShown: false }}
-        />
-
-        <Tabs.Screen
-          name="(tabs)/analytics"
-          options={{ headerShown: false }}
-        />
-
-        <Tabs.Screen
-          name="(tabs)/leaderboard"
-          options={{ headerShown: false }}
-        />
-
-        <Tabs.Screen
-          name="(tabs)/calendar"
-          options={{ headerShown: false }}
-        />
-      </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="home" />
+      <Stack.Screen name="analytics" />
+      <Stack.Screen name="leaderboard" />
+      <Stack.Screen name="calendar" />
     </Stack>
-  )
+  );
 }

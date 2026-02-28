@@ -34,7 +34,6 @@ app.use(
     credentials: true,
   })
 );
-app.use(compression());
 
 // Rate limiting (important for auth routes)
 const limiter = rateLimit({
@@ -55,6 +54,8 @@ if (process.env.NODE_ENV === "production") {
 
 app.use("/api/auth", authRouter);
 app.use("/api/habit", appRouter);
+
+app.use(compression());
 
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({
