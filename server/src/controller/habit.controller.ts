@@ -210,8 +210,6 @@ export const getAnalytics = async (req: AuthRequest, res: Response) => {
     const userId = req.user.id;
 
     const today = new Date();
-    const todayStr = formatDateLocal(today);
-
     const weeklyData = [];
 
     const sevenDaysAgo = new Date(today);
@@ -360,28 +358,6 @@ export const getAnalytics = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// GET /api/habits/calendar?month=02&year=2026
-export const getCalendarData = async (req: AuthRequest, res: Response) => {
-  try {
-    const { month, year } = req.query;
-
-    const start = `${year}-${month}-01`;
-    const end = `${year}-${month}-31`;
-
-    const logs = await habitLogsModel.find({
-      userId: req.user.id,
-      date: { $gte: start, $lte: end },
-    }).select("date status");
-
-    res.json({
-      status: "success",
-      data: logs,
-    });
-  } catch (error: Error | any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 // GET /api/habits/:habitId/streak
 export const getHabitStreak = async (req: AuthRequest, res: Response) => {
   try {
@@ -421,3 +397,121 @@ export const getHabitStreak = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// GET /api/habits/calendar?month=02&year=2026
+export const getCalendarData = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const year = parseInt(req.query.year as string);
+    const month = parseInt(req.query.month as string); // 0-based
+
+    if (isNaN(year) || isNaN(month)) {
+      return res.status(400).json({ message: "Invalid year or month" });
+    }
+
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0);
+
+    const firstDay = startOfMonth.getDay(); // 0-6 (Sun-Sat)
+    const daysInMonth = endOfMonth.getDate();
+
+    const formatDate = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
+    // Fetch habits active in this month range
+    const habits = await habitsModel.find({
+      userId,
+      isActive: true,
+      startDate: { $lte: endOfMonth },
+      endDate: { $gte: startOfMonth },
+    });
+
+    // Fetch logs for this month
+    const logs = await habitLogsModel.find({
+      userId,
+      date: {
+        $gte: formatDate(startOfMonth),
+        $lte: formatDate(endOfMonth),
+      },
+    });
+
+    const cells: any[] = [];
+    let completedDays = 0;
+    let totalTrackedDays = 0;
+
+    // Add leading empty cells
+    for (let i = 0; i < firstDay; i++) {
+      cells.push({ day: null, status: "none" });
+    }
+
+    // Build actual calendar days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const current = new Date(year, month, d);
+      const dateStr = formatDate(current);
+      const today = new Date();
+
+      const isFuture = current > today;
+
+      const activeHabits = habits.filter(
+        (h) => h.startDate <= current && h.endDate >= current
+      );
+
+      const dayLogs = logs.filter(
+        (l) => l.date === dateStr && l.completedToday
+      );
+
+      let status: "completed" | "partial" | "missed" | "future" | "none";
+
+      if (isFuture) {
+        status = "future";
+      } else if (activeHabits.length === 0) {
+        status = "missed";
+      } else if (dayLogs.length === activeHabits.length) {
+        status = "completed";
+        completedDays++;
+        totalTrackedDays++;
+      } else if (dayLogs.length > 0) {
+        status = "partial";
+        totalTrackedDays++;
+      } else {
+        status = "missed";
+        totalTrackedDays++;
+      }
+
+      cells.push({
+        day: d,
+        status,
+      });
+    }
+
+    return res.json({
+      status: "success",
+      year,
+      month,
+      firstDay,
+      daysInMonth,
+      summary: {
+        completedDays,
+        totalTrackedDays,
+        successRate:
+          totalTrackedDays > 0
+            ? Math.round((completedDays / totalTrackedDays) * 100)
+            : 0,
+      },
+      cells,
+    });
+
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 8 night off 1 morning 
+1080
+
+
+2280 + 880 
